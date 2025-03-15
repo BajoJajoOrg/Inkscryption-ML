@@ -1,4 +1,5 @@
 from PIL import Image
+from fastapi import HTTPException
 from app.utils import logger
 
 class MLModel:

@@ -1,3 +1,4 @@
+from fastapi import HTTPException
 from app.utils import logger
 import time
 import torch
@@ -62,7 +63,7 @@ class MLModel:
             #print("Распознанный текст:", predicted_text)
             #print(f"Время распознавания: {elapsed_time:.4f} секунд")
 
-    return predicted_text
+            return predicted_text
         except Exception as e:
             logger.error(f"Ошибка предсказания: {str(e)}")
             raise HTTPException(status_code=500, detail="Ошибка модели")
