@@ -1,29 +1,36 @@
-from PIL import Image
-from fastapi import HTTPException
-from app.utils import logger
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from app.model import MLModel
+from app.utils import fetch_image_from_url, logger
+from app.config import Config
 
-class MLModel:
-    def __init__(self, model_path: str):
-        self.model_path = model_path
-        self.model = None
-        self.load_model()
+app = FastAPI(title="ML Image-to-Text Service")
 
-    def load_model(self):
-        """Загрузка модели (заглушка)."""
-        try:
-            # Здесь будет реальная загрузка модели, например, torch.load
-            logger.info(f"Загружаем модель из {self.model_path}")
-            self.model = "Заглушка модели"  # Замените на реальную логику
-        except Exception as e:
-            logger.error(f"Ошибка загрузки модели: {str(e)}")
-            raise Exception("Не удалось загрузить модель")
+# Модель для валидации входных данных
+class ImageRequest(BaseModel):
+    image_url: str
 
-    def predict(self, image: Image.Image) -> str:
-        """Предсказание текста на основе изображения."""
-        try:
-            # Здесь будет вызов модели
-            logger.info("Выполняется предсказание")
-            return "Пример текста от модели"  # Замените на реальный вывод
-        except Exception as e:
-            logger.error(f"Ошибка предсказания: {str(e)}")
-            raise HTTPException(status_code=500, detail="Ошибка модели")
+# Инициализация модели
+try:
+    ml_model = MLModel(Config.MODEL_PATH)
+except Exception as e:
+    logger.critical(f"Не удалось запустить сервис: {str(e)}")
+    raise e
+
+@app.post("/predict/", response_model=dict)
+async def predict(request: ImageRequest):
+    """Эндпоинт для предсказания текста по URL изображения."""
+    logger.info(f"Получен запрос на предсказание, URL: {request.image_url}")
+    
+    # Загружаем изображение по URL
+    image = fetch_image_from_url(request.image_url)
+    
+    # Получаем предсказание
+    text = ml_model.predict(image)
+    
+    return {"text": text}
+
+@app.get("/health")
+async def health_check():
+    """Проверка состояния сервиса."""
+    return {"status": "healthy"}
