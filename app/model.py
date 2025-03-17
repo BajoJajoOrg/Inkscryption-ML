@@ -3,6 +3,7 @@ from PIL import Image
 from transformers import VisionEncoderDecoderModel, TrOCRProcessor
 from fastapi import HTTPException
 from app.utils import logger
+import Levenshtein
 
 class MLModel:
     def __init__(self, model_path: str):
@@ -42,3 +43,42 @@ class MLModel:
             logger.error(f"Ошибка предсказания: {str(e)}")
             # Исправляем синтаксис HTTPException
             raise HTTPException(500, "Ошибка модели")
+        
+    def calculate_metrics(self, arr_img: list[Image.Image], arr_ref: list[str]) -> dict:
+        """
+        Вычисляет средние метрики CER и WER по массиву изображений.
+        
+        :param arr_img: список изображений
+        :param arr_ref: список эталонных текстов
+        :return: словарь со средними значениями CER, WER и Accuracy
+        """
+        global_cer = 0
+        global_wer = 0
+        img_count = 0
+        num_samples = len(arr_img)
+        errors = []
+        
+        for img, reference in zip(arr_img, arr_ref):
+            pred_str = self.predict(img)
+            
+            global_cer  += Levenshtein.distance(pred_str, reference) / max(len(reference), 1)
+            global_wer  += Levenshtein.distance(pred_str.split(), reference.split()) / max(len(reference.split()), 1)
+            
+            if pred_str != reference:
+                errors.append({
+                    "true_text": reference,
+                    "predicted_text": pred_str,
+                    "img_count": img_count
+                })
+            img_count+=1
+        # Усреднение по количеству примеров
+        avg_cer = global_cer / num_samples
+        avg_wer = global_wer / num_samples
+        avg_accuracy = 1 - avg_cer
+        
+        return {
+            "CER": avg_cer,
+            "WER": avg_wer,
+            "Accuracy": avg_accuracy,
+            "Errors": errors
+        }
