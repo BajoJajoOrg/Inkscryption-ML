@@ -1,3 +1,8 @@
 app/__pycache__/
 logs/
 data/
+.ipynb_checkpoints/
+tests/*
+!tests/test_model.py
+src/
+.vscode

@@ -2,19 +2,21 @@ import unittest
 import os, sys
 import pandas as pd
 from PIL import Image
-root_path = os.path.abspath("./Inkscryption-ML/")
-sys.path.append(root_path)
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(ROOT_DIR)
 
+import pytesseract
+pytesseract.pytesseract.tesseract_cmd = r".\src\Tesseract-OCR\tesseract.exe"
+os.environ['TESSDATA_PREFIX'] = r".\src\Tesseract-OCR\tessdata"
 
 from app.model import MLModel
 from app.utils import fetch_image_from_url
 
 
+TEST_URL = "https://ekspertiza-reshenie.ru/upload/medialibrary/901/901f80b85cc5194d04bcc5169f00b02f.png"
+TEST_IMG = os.path.join(ROOT_DIR, "tests", "simple16.png")
 
-TEST_URL = 'https://storage.googleapis.com/kagglesdsdata/datasets/1502872/3977616/test/test0.png?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=databundle-worker-v2%40kaggle-161607.iam.gserviceaccount.com%2F20250315%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20250315T114815Z&X-Goog-Expires=345600&X-Goog-SignedHeaders=host&X-Goog-Signature=9c0d7afd4dbe2663906e764d788959e89daa6b60258fd0444c676e99eb1d3af1dae1bbb1722e1d72c4d9935777b35c2cc58bf8c0c5b3ef2da7bf2c91266b62c35683f7cfdfd3821e54650641dbb9abb8183d8e696fe1a86bad79921d807e9da15439b6daa687587624c3a2b124e8c964ccd5969e57e7201d2a6b82a5f7dcd6a2acb5fbe655e6d19ede0f8ac159a29e7b9388957e667199cf3b7b58192451a22ae6498d0db76ab20e7ec80415f62d9978084bda7c530406203119317b9a867bd957f3269d77da1ff0c31a0a6e071f932221ce27eecfacec68250a6904caf6233bc08a4ad223b9b2276b7400ce17538d9327a570dec946ec75987499ac36f1f694'
-
-ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-TSV_FILE = os.path.join(ROOT_DIR, "data", "test.tsv")
+TSV_FILE = os.path.join(ROOT_DIR, "data/test", "test.tsv")
 DATA_DIR = os.path.join(ROOT_DIR, "data", "test")
 ERRORS_FILE = os.path.join(ROOT_DIR, "data", "errors.csv")
 
@@ -37,10 +39,10 @@ class TestMLModel(unittest.TestCase):
     
     def test_prediction(self):
         """Тест предсказания"""
-        img = fetch_image_from_url(TEST_URL)
+        img = Image.open(TEST_IMG).convert("RGB")
         predicted_text = self.model.predict(img)
         
-        self.assertEqual(predicted_text, 'ибо', "Предсказанный текст не соответствует ожидаемому")
+        self.assertEqual(predicted_text, "Ну что, получилось Ли чего-нибудь добиться. Вроде хорошо", "Предсказанный текст не соответствует ожидаемому")
 
     def test_metrics_calculation(self):
         """Тест расчёта метрик"""
