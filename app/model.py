@@ -5,9 +5,9 @@ from fastapi import HTTPException
 from app.utils import logger
 import Levenshtein
 import pytesseract
-pytesseract.pytesseract.tesseract_cmd = r".\src\Tesseract-OCR\tesseract.exe"
-import os
-os.environ['TESSDATA_PREFIX'] = r".\src\Tesseract-OCR\tessdata"
+# pytesseract.pytesseract.tesseract_cmd = r".\src\Tesseract-OCR\tesseract.exe"
+# import os
+# os.environ['TESSDATA_PREFIX'] = r".\src\Tesseract-OCR\tessdata"
 
 class MLModel:
     def __init__(self, model_path: str):

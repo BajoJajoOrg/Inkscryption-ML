@@ -6,3 +6,4 @@ tests/*
 !tests/test_model.py
 src/
 .vscode
+clear_vk/
